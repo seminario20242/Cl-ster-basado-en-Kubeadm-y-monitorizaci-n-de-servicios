@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vlc-deployment
+  namespace: streaming
+  
+spec:
+  selector:
+    matchLabels:
+      app: vlc
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: vlc
+    spec:
+      containers:
+      - name: vlc
+        image: kasmweb/vlc:1.15.0-rolling-weekly
+        imagePullPolicy: IfNotPresent
+        resources:
+          limits:
+            cpu: "1.2"
+            memory: "3Gi"
+          requests:
+            cpu: "0.9"
+            memory: "2Gi"
+        ports:
+        - containerPort: 6901
+        env:
+          - name: VNC_PW
+            value: "password"       
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vlc-service
+  namespace: streaming
+spec:
+  selector:
+    app: vlc
+  type: NodePort
+  ports:
+  - protocol: TCP
+    port: 6901           # Puerto que expone el servicio dentro del clúster
+    targetPort: 6901     # Puerto que utiliza el contenedor
+    nodePort: 30690      # Puerto en los nodos (puedes asignarlo automáticamente si no especificas)
